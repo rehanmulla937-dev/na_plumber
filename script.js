@@ -1,10 +1,7 @@
 (function(){
   'use strict';
 
-  const supabaseClient = window.supabase.createClient(
-    window.NA_SUPABASE_URL,
-    window.NA_SUPABASE_PUBLISHABLE_KEY
-  );
+  const supabaseClient = window.supabase.createClient(window.NA_SUPABASE_URL, window.NA_SUPABASE_PUBLISHABLE_KEY);
 
   window.toggleMenu = function(){
     const nav = document.getElementById('navLinks');
@@ -13,7 +10,6 @@
 
   let currentMapLink = '';
   const locationBtn = document.getElementById('locationBtn');
-
   if(locationBtn){
     locationBtn.addEventListener('click', function(){
       const locationStatus = document.getElementById('locationStatus');
@@ -21,10 +17,8 @@
         if(locationStatus) locationStatus.textContent = 'Location is not supported by this browser.';
         return;
       }
-
       locationBtn.disabled = true;
       if(locationStatus) locationStatus.textContent = 'Getting your location...';
-
       navigator.geolocation.getCurrentPosition(function(position){
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
@@ -44,7 +38,6 @@
   if(bookingForm){
     bookingForm.addEventListener('submit', async function(e){
       e.preventDefault();
-
       const button = bookingForm.querySelector('button[type="submit"]');
       const name = document.getElementById('name').value.trim();
       const mobile = document.getElementById('mobile').value.trim();
@@ -62,13 +55,12 @@
       }
 
       if(button) button.disabled = true;
-      if(status){
-        status.textContent = 'Saving your booking...';
-        status.className = 'booking-status';
-      }
+      if(status){ status.textContent = 'Saving your booking...'; status.className = 'booking-status'; }
 
       try{
-        const { data, error } = await supabaseClient.from('bookings').insert({
+        // Insert only. We intentionally do not call .select() here because public customers
+        // should be allowed to create bookings without being allowed to read the table.
+        const {error} = await supabaseClient.from('bookings').insert({
           customer_name: name,
           phone: mobile,
           service: service,
@@ -77,8 +69,7 @@
           booking_date: date,
           map_location: mapLocation,
           status: 'Pending'
-        }).select('id').single();
-
+        });
         if(error) throw error;
 
         const message = [
@@ -90,15 +81,12 @@
           `Preferred Date: ${date || 'Not specified'}`,
           `Location/Address: ${address}`,
           mapLocation ? `Google Maps Location: ${mapLocation}` : 'Google Maps Location: Not shared',
-          `Problem: ${problem}`,
-          '',
-          `Booking ID: ${data && data.id ? data.id : 'Saved'}`
+          `Problem: ${problem}`
         ].join('\n');
-
         const whatsappUrl = `https://wa.me/919059991545?text=${encodeURIComponent(message)}`;
 
         if(status){
-          status.innerHTML = '✓ <strong>Booking saved successfully!</strong> Your request is now recorded. WhatsApp is ready below.';
+          status.innerHTML = '✓ <strong>Booking saved successfully!</strong> Your request is recorded. WhatsApp is ready below.';
           status.className = 'booking-status success-booking';
         }
 
@@ -115,7 +103,6 @@
         waButton.href = whatsappUrl;
         waButton.textContent = '💬 Open WhatsApp & Send Booking';
 
-        // Try opening WhatsApp automatically; the visible button remains available if the browser blocks pop-ups.
         const popup = window.open(whatsappUrl, '_blank', 'noopener');
         if(!popup && status){
           status.innerHTML = '✓ <strong>Booking saved successfully!</strong> Click “Open WhatsApp & Send Booking” below.';
@@ -144,35 +131,27 @@
       const booking = document.getElementById('booking');
       const box = document.getElementById('urgencyBox');
       if(select) select.value = service;
-      if(box){
-        box.innerHTML = service === 'Emergency Plumbing'
-          ? '<strong>🚨 Emergency selected:</strong> Add your location and problem details, then send the request on WhatsApp.'
-          : `<strong>✓ ${service} selected.</strong> Add your details below and send the booking request.`;
-      }
+      if(box) box.innerHTML = service === 'Emergency Plumbing'
+        ? '<strong>🚨 Emergency selected:</strong> Add your location and problem details, then send the request on WhatsApp.'
+        : `<strong>✓ ${service} selected.</strong> Add your details below and send the booking request.`;
       if(booking) booking.scrollIntoView({behavior:'smooth'});
     });
   });
 
   (function(){
     const fields = ['name','service','date','address'];
-    const ids = {name:'previewName', service:'previewService', date:'previewDate', address:'previewAddress'};
-    const placeholders = {name:'Name', service:'Service', date:'Date', address:'Location'};
-
+    const ids = {name:'previewName',service:'previewService',date:'previewDate',address:'previewAddress'};
+    const placeholders = {name:'Name',service:'Service',date:'Date',address:'Location'};
     fields.forEach(function(id){
       const el = document.getElementById(id);
-      if(el){
-        el.addEventListener('input', updatePreview);
-        el.addEventListener('change', updatePreview);
-      }
+      if(el){ el.addEventListener('input', updatePreview); el.addEventListener('change', updatePreview); }
     });
-
     const dateInput = document.getElementById('date');
     if(dateInput){
       const now = new Date();
       const local = new Date(now.getTime() - now.getTimezoneOffset()*60000);
       dateInput.min = local.toISOString().slice(0,10);
     }
-
     function updatePreview(){
       fields.forEach(function(id){
         const el = document.getElementById(id);
