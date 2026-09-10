@@ -5,7 +5,7 @@
 <title>NA Plumber • Owner Admin</title>
 <link rel="stylesheet" href="style.css">
 <style>
-.admin-page{min-height:100vh;background:#07111f;color:#eef6ff;padding:30px 16px}.admin-wrap{max-width:1200px;margin:auto}.admin-login,.admin-panel{background:#0d1b2d;border:1px solid #1d3854;border-radius:20px;padding:28px;box-shadow:0 20px 50px #0006}.admin-login{max-width:430px;margin:7vh auto}.admin-login input{width:100%;box-sizing:border-box;padding:13px;margin:7px 0 15px;border-radius:10px;border:1px solid #2b4965;background:#081321;color:#fff}.admin-login label{display:block}.admin-btn{padding:13px 18px;border:0;border-radius:10px;background:#1683ff;color:#fff;font-weight:700;cursor:pointer}.admin-btn:disabled{opacity:.6;cursor:not-allowed}.error{color:#ff8b8b;min-height:22px}.success{color:#7dffb2;min-height:22px}.admin-top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.top-actions{display:flex;gap:10px}.logout{background:#20344a}.refresh{background:#1683ff}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}.stat{background:#10243a;border:1px solid #1e3d59;border-radius:15px;padding:20px}.stat b{font-size:30px;display:block}.stat small{color:#9db0c5}.table-wrap{overflow:auto}.admin-table{width:100%;border-collapse:collapse;min-width:1000px}.admin-table th,.admin-table td{text-align:left;padding:12px;border-bottom:1px solid #20384e;vertical-align:top}.admin-table th{color:#8fc6ff}.admin-table select{padding:7px;border-radius:8px}.map-link{color:#7dc3ff;font-weight:700}.booking-count{color:#9db0c5;margin:0 0 15px}@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.admin-top{align-items:flex-start;flex-direction:column}.top-actions{width:100%}.top-actions .admin-btn{flex:1}}
+.admin-page{min-height:100vh;background:#07111f;color:#eef6ff;padding:30px 16px}.admin-wrap{max-width:1200px;margin:auto}.admin-login,.admin-panel{background:#0d1b2d;border:1px solid #1d3854;border-radius:20px;padding:28px;box-shadow:0 20px 50px #0006}.admin-login{max-width:430px;margin:7vh auto}.admin-login input{width:100%;box-sizing:border-box;padding:13px;margin:7px 0 15px;border-radius:10px;border:1px solid #2b4965;background:#081321;color:#fff}.admin-login label{display:block}.admin-btn{padding:13px 18px;border:0;border-radius:10px;background:#1683ff;color:#fff;font-weight:700;cursor:pointer}.admin-btn:disabled{opacity:.6;cursor:not-allowed}.error{color:#ff8b8b;min-height:22px}.success{color:#7dffb2;min-height:22px}.admin-top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.top-actions{display:flex;gap:10px}.logout{background:#20344a}.refresh{background:#1683ff}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}.stat{background:#10243a;border:1px solid #1e3d59;border-radius:15px;padding:20px}.stat b{font-size:30px;display:block}.stat small{color:#9db0c5}.table-wrap{overflow:auto}.admin-table{width:100%;border-collapse:collapse;min-width:1120px}.admin-table th,.admin-table td{text-align:left;padding:12px;border-bottom:1px solid #20384e;vertical-align:top}.admin-table th{color:#8fc6ff}.admin-table select{padding:7px;border-radius:8px}.map-link{color:#7dc3ff;font-weight:700}.booking-count{color:#9db0c5;margin:0 0 15px}.time-cell{white-space:nowrap;font-weight:700;color:#cfe7ff}@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.admin-top{align-items:flex-start;flex-direction:column}.top-actions{width:100%}.top-actions .admin-btn{flex:1}}
 </style>
 </head>
 <body class="admin-page">
@@ -35,8 +35,8 @@
   <div id="dashboardMessage" class="error"></div>
   <div class="table-wrap">
     <table class="admin-table">
-      <thead><tr><th>Date</th><th>Customer</th><th>Mobile</th><th>Service</th><th>Address / Map</th><th>Problem</th><th>Status</th></tr></thead>
-      <tbody id="rows"><tr><td colspan="7">Loading bookings...</td></tr></tbody>
+      <thead><tr><th>Date</th><th>Time</th><th>Customer</th><th>Mobile</th><th>Service</th><th>Address / Map</th><th>Problem</th><th>Status</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="8">Loading bookings...</td></tr></tbody>
     </table>
   </div>
 </section>
@@ -86,17 +86,26 @@ async function render(){
   $('dashboardMessage').textContent = 'Loading bookings...';
   $('refresh').disabled = true;
 
-  const {data, error} = await supabaseClient
+  let result = await supabaseClient
     .from('bookings')
-    .select('id,created_at,customer_name,phone,service,address,problem,booking_date,status,map_location')
+    .select('id,created_at,customer_name,phone,service,address,problem,booking_date,booking_time,status,map_location')
     .order('created_at', {ascending:false});
 
+  // Keep the dashboard readable if the booking_time column has not been added yet.
+  if(result.error && (result.error.code === '42703' || String(result.error.message || '').toLowerCase().includes('booking_time'))){
+    result = await supabaseClient
+      .from('bookings')
+      .select('id,created_at,customer_name,phone,service,address,problem,booking_date,status,map_location')
+      .order('created_at', {ascending:false});
+  }
+
+  const {data,error} = result;
   $('refresh').disabled = false;
 
   if(error){
     console.error('Load bookings error:', error);
     $('dashboardMessage').textContent = `Could not load bookings: ${error.message || 'RLS permission denied'}`;
-    $('rows').innerHTML = '<tr><td colspan="7">Unable to load bookings. Check the Supabase RLS SELECT policy for the owner.</td></tr>';
+    $('rows').innerHTML = '<tr><td colspan="8">Unable to load bookings. Run the Supabase RLS setup from SUPABASE_SETUP.sql, then refresh.</td></tr>';
     return;
   }
 
@@ -113,6 +122,7 @@ async function render(){
     const current = String(x.status || 'Pending').toLowerCase() === 'completed' ? 'Completed' : 'Pending';
     return `<tr>
       <td>${safe(x.booking_date || formatDate(x.created_at))}</td>
+      <td class="time-cell">${safe(x.booking_time || '—')}</td>
       <td><strong>${safe(x.customer_name)}</strong></td>
       <td><a href="tel:${safeAttr(x.phone)}">${safe(x.phone)}</a></td>
       <td>${safe(x.service)}</td>
@@ -120,7 +130,7 @@ async function render(){
       <td>${safe(x.problem)}</td>
       <td><select class="status-select" data-id="${safeAttr(x.id)}"><option value="Pending" ${current==='Pending'?'selected':''}>Pending</option><option value="Completed" ${current==='Completed'?'selected':''}>Completed</option></select></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="7">No bookings yet.</td></tr>';
+  }).join('') : '<tr><td colspan="8">No bookings yet.</td></tr>';
 
   document.querySelectorAll('.status-select').forEach(select => {
     select.addEventListener('change', () => updateStatus(select.dataset.id, select.value));
