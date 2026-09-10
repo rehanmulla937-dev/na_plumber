@@ -50,16 +50,28 @@
       const status = document.getElementById('bookingStatus');
 
       if(!name || !mobile || !service || !address){
-        if(status) status.textContent = 'Please fill all required details.';
+        if(status){ status.textContent = 'Please fill all required details.'; status.className = 'booking-status error-booking'; }
         return;
       }
+
+      const message = [
+        'Hello NA Plumber Service, I want to book a plumbing service.',
+        '',
+        `Name: ${name}`,
+        `Mobile: ${mobile}`,
+        `Service: ${service}`,
+        `Preferred Date: ${date || 'Not specified'}`,
+        `Location/Address: ${address}`,
+        mapLocation ? `Google Maps Location: ${mapLocation}` : 'Google Maps Location: Not shared',
+        `Problem: ${problem}`
+      ].join('\n');
+      const whatsappUrl = `https://wa.me/919059991545?text=${encodeURIComponent(message)}`;
 
       if(button) button.disabled = true;
       if(status){ status.textContent = 'Saving your booking...'; status.className = 'booking-status'; }
 
       try{
-        // Insert only. We intentionally do not call .select() here because public customers
-        // should be allowed to create bookings without being allowed to read the table.
+        // Insert only. Public customers must not receive read access to the bookings table.
         const {error} = await supabaseClient.from('bookings').insert({
           customer_name: name,
           phone: mobile,
@@ -72,23 +84,11 @@
         });
         if(error) throw error;
 
-        const message = [
-          'Hello NA Plumber Service, I want to book a plumbing service.',
-          '',
-          `Name: ${name}`,
-          `Mobile: ${mobile}`,
-          `Service: ${service}`,
-          `Preferred Date: ${date || 'Not specified'}`,
-          `Location/Address: ${address}`,
-          mapLocation ? `Google Maps Location: ${mapLocation}` : 'Google Maps Location: Not shared',
-          `Problem: ${problem}`
-        ].join('\n');
-        const whatsappUrl = `https://wa.me/919059991545?text=${encodeURIComponent(message)}`;
-
         if(status){
-          status.innerHTML = '✓ <strong>Booking saved successfully!</strong> Your request is recorded. WhatsApp is ready below.';
+          status.innerHTML = '✓ <strong>Booking saved successfully!</strong> Opening WhatsApp...';
           status.className = 'booking-status success-booking';
         }
+        openWhatsApp(whatsappUrl, status);
 
         let waButton = document.getElementById('bookingWhatsappButton');
         if(!waButton){
@@ -102,26 +102,44 @@
         }
         waButton.href = whatsappUrl;
         waButton.textContent = '💬 Open WhatsApp & Send Booking';
-
-        const popup = window.open(whatsappUrl, '_blank', 'noopener');
-        if(!popup && status){
-          status.innerHTML = '✓ <strong>Booking saved successfully!</strong> Click “Open WhatsApp & Send Booking” below.';
-        }
+        waButton.style.display = 'block';
 
         bookingForm.reset();
         currentMapLink = '';
         const locationStatus = document.getElementById('locationStatus');
-        if(locationStatus) locationStatus.textContent = 'Or enter your address manually.';
-        if(button) button.disabled = false;
+        if(locationStatus) locationStatus.textContent = 'Search an area or enter your address.';
       }catch(error){
         console.error('Supabase booking error:', error);
         if(status){
-          status.textContent = 'Booking could not be saved. Please try again or use WhatsApp directly.';
+          const detail = error && (error.message || error.code) ? ` (${error.message || error.code})` : '';
+          status.innerHTML = `⚠️ <strong>Booking database save failed.</strong>${detail}<br><small>WhatsApp booking is still available below.</small>`;
           status.className = 'booking-status error-booking';
         }
+
+        let waButton = document.getElementById('bookingWhatsappButton');
+        if(!waButton){
+          waButton = document.createElement('a');
+          waButton.id = 'bookingWhatsappButton';
+          waButton.target = '_blank';
+          waButton.rel = 'noopener';
+          waButton.className = 'btn whatsapp full';
+          waButton.style.marginTop = '10px';
+          bookingForm.appendChild(waButton);
+        }
+        waButton.href = whatsappUrl;
+        waButton.textContent = '💬 Send Booking on WhatsApp Now';
+        waButton.style.display = 'block';
+      }finally{
         if(button) button.disabled = false;
       }
     });
+  }
+
+  function openWhatsApp(url, status){
+    const popup = window.open(url, '_blank', 'noopener');
+    if(!popup && status){
+      status.innerHTML = '✓ <strong>Booking saved successfully!</strong> Click “Open WhatsApp & Send Booking” below.';
+    }
   }
 
   document.querySelectorAll('.quick-card').forEach(function(card){
