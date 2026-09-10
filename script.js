@@ -1,28 +1,26 @@
 (function(){
-  function loadSupabase(){
+  function loadScript(src){
     return new Promise(function(resolve,reject){
-      if(window.supabase) return resolve();
       var s=document.createElement('script');
-      s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.src=src;
       s.onload=resolve;
       s.onerror=reject;
       document.head.appendChild(s);
     });
   }
 
-  loadSupabase().then(init).catch(function(){
-    console.error('Could not load Supabase client.');
-  });
+  Promise.resolve()
+    .then(function(){return loadScript('supabase-config.js');})
+    .then(function(){return loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');})
+    .then(init)
+    .catch(function(err){console.error('Supabase setup failed:',err);});
 
   function init(){
-    const supabaseClient=window.supabase.createClient(
-      window.NA_SUPABASE_URL,
-      window.NA_SUPABASE_PUBLISHABLE_KEY
-    );
+    const supabaseClient=window.supabase.createClient(window.NA_SUPABASE_URL,window.NA_SUPABASE_PUBLISHABLE_KEY);
 
     window.toggleMenu=function(){
       const n=document.getElementById('navLinks');
-      if(n) n.style.display=n.style.display==='flex'?'none':'flex';
+      if(n)n.style.display=n.style.display==='flex'?'none':'flex';
     };
 
     let currentMapLink='';
@@ -35,8 +33,7 @@
         btn.disabled=true;
         if(status)status.textContent='Getting your location...';
         navigator.geolocation.getCurrentPosition(function(position){
-          const lat=position.coords.latitude;
-          const lon=position.coords.longitude;
+          const lat=position.coords.latitude,lon=position.coords.longitude;
           currentMapLink=`https://www.google.com/maps?q=${lat},${lon}`;
           const mapInput=document.getElementById('mapLocation');
           if(mapInput)mapInput.value=currentMapLink;
@@ -60,7 +57,8 @@
         const date=document.getElementById('date').value||null;
         const address=document.getElementById('address').value.trim();
         const problem=document.getElementById('problem').value.trim()||'Not specified';
-        const mapLocation=(document.getElementById('mapLocation')||{}).value||currentMapLink||null;
+        const mapEl=document.getElementById('mapLocation');
+        const mapLocation=(mapEl&&mapEl.value)||currentMapLink||null;
         let status=document.getElementById('bookingStatus');
         if(!status){
           status=document.createElement('div');
@@ -106,9 +104,7 @@
     document.querySelectorAll('.quick-card').forEach(function(card){
       card.addEventListener('click',function(){
         const service=this.dataset.service;
-        const select=document.getElementById('service');
-        const booking=document.getElementById('booking');
-        const box=document.getElementById('urgencyBox');
+        const select=document.getElementById('service'),booking=document.getElementById('booking'),box=document.getElementById('urgencyBox');
         if(select)select.value=service;
         if(box)box.innerHTML=service==='Emergency Plumbing'?'<strong>🚨 Emergency selected:</strong> Add your location and problem details, then send the request on WhatsApp.':'<strong>✓ '+service+' selected.</strong> Add your details below and send the booking request.';
         if(booking)booking.scrollIntoView({behavior:'smooth'});
@@ -120,7 +116,7 @@
       const ids={name:'previewName',service:'previewService',date:'previewDate',address:'previewAddress'};
       fields.forEach(function(id){const el=document.getElementById(id);if(el){el.addEventListener('input',update);el.addEventListener('change',update);}});
       const d=document.getElementById('date');
-      if(d){const x=new Date();const y=new Date(x.getTime()-x.getTimezoneOffset()*60000);d.min=y.toISOString().slice(0,10);}
+      if(d){const x=new Date(),y=new Date(x.getTime()-x.getTimezoneOffset()*60000);d.min=y.toISOString().slice(0,10);}
       function update(){fields.forEach(function(id){const el=document.getElementById(id),t=document.getElementById(ids[id]);if(el&&t)t.textContent=el.value.trim()||({name:'Name',service:'Service',date:'Date',address:'Location'}[id]);});}
     })();
   }
