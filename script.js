@@ -1,3 +1,8 @@
+const supabaseClient = window.supabase.createClient(
+  window.NA_SUPABASE_URL,
+  window.NA_SUPABASE_PUBLISHABLE_KEY
+);
+
 function toggleMenu(){
   const n=document.getElementById('navLinks');
   n.style.display=n.style.display==='flex'?'none':'flex';
@@ -35,18 +40,53 @@ if(locationBtn){
   });
 }
 
-document.getElementById('bookingForm').addEventListener('submit',function(e){
-  e.preventDefault();
-  const name=document.getElementById('name').value.trim();
-  const mobile=document.getElementById('mobile').value.trim();
-  const service=document.getElementById('service').value;
-  const date=document.getElementById('date').value || 'Not specified';
-  const address=document.getElementById('address').value.trim();
-  const problem=document.getElementById('problem').value.trim() || 'Not specified';
-  const locationLine=currentMapLink ? `Google Maps Location: ${currentMapLink}` : 'Google Maps Location: Not shared';
-  const message=['Hello NA Plumber Service, I want to book a plumbing service.','',`Name: ${name}`,`Mobile: ${mobile}`,`Service: ${service}`,`Preferred Date: ${date}`,`Location/Address: ${address}`,locationLine,`Problem: ${problem}`].join('\n');
-  window.open(`https://wa.me/919059991545?text=${encodeURIComponent(message)}`,'_blank');
-});
+const bookingForm=document.getElementById('bookingForm');
+if(bookingForm){
+  bookingForm.addEventListener('submit',async function(e){
+    e.preventDefault();
+    const status=document.getElementById('bookingStatus');
+    const button=bookingForm.querySelector('button[type="submit"]');
+    const name=document.getElementById('name').value.trim();
+    const mobile=document.getElementById('mobile').value.trim();
+    const service=document.getElementById('service').value;
+    const date=document.getElementById('date').value || null;
+    const address=document.getElementById('address').value.trim();
+    const problem=document.getElementById('problem').value.trim() || 'Not specified';
+    const mapLocation=document.getElementById('mapLocation').value || null;
+
+    if(!name || !mobile || !service || !address){
+      status.textContent='Please fill all required details.';
+      return;
+    }
+
+    button.disabled=true;
+    status.textContent='Saving your booking...';
+
+    const {error}=await supabaseClient.from('bookings').insert({
+      customer_name:name,
+      phone:mobile,
+      service:service,
+      address:address,
+      problem:problem,
+      booking_date:date,
+      status:'Pending'
+    });
+
+    if(error){
+      console.error('Supabase booking error:',error);
+      status.textContent='Booking could not be saved. Please try again or use WhatsApp directly.';
+      button.disabled=false;
+      return;
+    }
+
+    const locationLine=mapLocation ? `Google Maps Location: ${mapLocation}` : 'Google Maps Location: Not shared';
+    const message=['Hello NA Plumber Service, I want to book a plumbing service.','',`Name: ${name}`,`Mobile: ${mobile}`,`Service: ${service}`,`Preferred Date: ${date || 'Not specified'}`,`Location/Address: ${address}`,locationLine,`Problem: ${problem}`].join('\n');
+    status.textContent='✓ Booking saved. Opening WhatsApp...';
+    window.open(`https://wa.me/919059991545?text=${encodeURIComponent(message)}`,'_blank');
+    button.disabled=false;
+  });
+}
+
 document.querySelectorAll('.quick-card').forEach(function(card){
   card.addEventListener('click',function(){
     const service=this.dataset.service;
@@ -63,4 +103,23 @@ document.querySelectorAll('.quick-card').forEach(function(card){
   });
 });
 
-(function(){const fields=['name','service','date','address'];const ids={name:'previewName',service:'previewService',date:'previewDate',address:'previewAddress'};fields.forEach(function(id){const el=document.getElementById(id);if(el){el.addEventListener('input',update);el.addEventListener('change',update)}});const d=document.getElementById('date');if(d){const x=new Date();const y=new Date(x.getTime()-x.getTimezoneOffset()*60000);d.min=y.toISOString().slice(0,10)}function update(){fields.forEach(function(id){const el=document.getElementById(id),t=document.getElementById(ids[id]);if(el&&t)t.textContent=el.value.trim()||({name:'Name',service:'Service',date:'Date',address:'Location'}[id])})}})();
+(function(){
+  const fields=['name','service','date','address'];
+  const ids={name:'previewName',service:'previewService',date:'previewDate',address:'previewAddress'};
+  fields.forEach(function(id){
+    const el=document.getElementById(id);
+    if(el){el.addEventListener('input',update);el.addEventListener('change',update)}
+  });
+  const d=document.getElementById('date');
+  if(d){
+    const x=new Date();
+    const y=new Date(x.getTime()-x.getTimezoneOffset()*60000);
+    d.min=y.toISOString().slice(0,10)
+  }
+  function update(){
+    fields.forEach(function(id){
+      const el=document.getElementById(id),t=document.getElementById(ids[id]);
+      if(el&&t)t.textContent=el.value.trim()||({name:'Name',service:'Service',date:'Date',address:'Location'}[id])
+    })
+  }
+})();
