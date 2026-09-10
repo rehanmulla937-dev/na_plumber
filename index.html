@@ -86,7 +86,7 @@
 <section id="booking" class="section">
   <div class="container booking">
     <div><p class="eyebrow">BOOK A SERVICE</p><h2>Send your service request on WhatsApp</h2>
-      <p>Fill the details below. Your booking message will open directly in WhatsApp.</p>
+      <p>Fill the details below. Your booking will be saved securely and your booking message will open directly in WhatsApp.</p>
     </div>
     <form id="bookingForm">
       <div class="form-grid">
@@ -101,7 +101,8 @@
       </div>
       <label>Service Location / Address<textarea id="address" required placeholder="Where should the plumber visit?"></textarea><div class="location-row"><button type="button" class="location-btn" id="locationBtn">📍 Use My Current Location</button><span id="locationStatus">Or enter your address manually.</span></div><input type="hidden" id="mapLocation"></label>
       <label>Problem Details<textarea id="problem" placeholder="Describe the plumbing problem"></textarea></label>
-      <div class="booking-preview" id="bookingPreview"><div><strong>Booking Preview</strong><span>Details update as you fill the form.</span></div><div class="preview-grid"><span>👤 <b id="previewName">Name</b></span><span>🧰 <b id="previewService">Service</b></span><span>📅 <b id="previewDate">Date</b></span><span>📍 <b id="previewAddress">Location</b></span></div></div><button class="btn whatsapp full" type="submit">💬 Send Booking on WhatsApp</button>
+      <div class="booking-preview" id="bookingPreview"><div><strong>Booking Preview</strong><span>Details update as you fill the form.</span></div><div class="preview-grid"><span>👤 <b id="previewName">Name</b></span><span>🧰 <b id="previewService">Service</b></span><span>📅 <b id="previewDate">Date</b></span><span>📍 <b id="previewAddress">Location</b></span></div></div><button class="btn whatsapp full" type="submit">💬 Save & Send Booking on WhatsApp</button>
+      <p id="bookingStatus" class="booking-status" aria-live="polite"></p>
     </form>
   </div>
 </section>
@@ -158,6 +159,8 @@
 <a class="float-wa" target="_blank" href="https://wa.me/919059991545?text=Hello%20NA%20Plumber%20Service%2C%20I%20want%20to%20book%20a%20plumbing%20service.">💬</a>
 <div class="mobile-actions"><a href="tel:+919059991545">📞 Call</a><a href="https://wa.me/919059991545" target="_blank" rel="noopener">💬 WhatsApp</a><a href="#booking">🔧 Book</a></div>
 <footer><div class="container">© 2026 NA Plumber Service Hyderabad • All rights reserved.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script src="script.js"></script>
 </body>
 </html>
