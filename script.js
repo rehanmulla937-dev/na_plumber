@@ -43,6 +43,7 @@
       const mobile = document.getElementById('mobile').value.trim();
       const service = document.getElementById('service').value;
       const date = document.getElementById('date').value || null;
+      const time = document.getElementById('time').value || null;
       const address = document.getElementById('address').value.trim();
       const problem = document.getElementById('problem').value.trim() || 'Not specified';
       const mapEl = document.getElementById('mapLocation');
@@ -61,6 +62,7 @@
         `Mobile: ${mobile}`,
         `Service: ${service}`,
         `Preferred Date: ${date || 'Not specified'}`,
+        `Preferred Time: ${time || 'Not specified'}`,
         `Location/Address: ${address}`,
         mapLocation ? `Google Maps Location: ${mapLocation}` : 'Google Maps Location: Not shared',
         `Problem: ${problem}`
@@ -71,7 +73,6 @@
       if(status){ status.textContent = 'Saving your booking...'; status.className = 'booking-status'; }
 
       try{
-        // Insert only. Public customers must not receive read access to the bookings table.
         const {error} = await supabaseClient.from('bookings').insert({
           customer_name: name,
           phone: mobile,
@@ -79,6 +80,7 @@
           address: address,
           problem: problem,
           booking_date: date,
+          booking_time: time,
           map_location: mapLocation,
           status: 'Pending'
         });
@@ -157,9 +159,9 @@
   });
 
   (function(){
-    const fields = ['name','service','date','address'];
-    const ids = {name:'previewName',service:'previewService',date:'previewDate',address:'previewAddress'};
-    const placeholders = {name:'Name',service:'Service',date:'Date',address:'Location'};
+    const fields = ['name','service','date','time','address'];
+    const ids = {name:'previewName',service:'previewService',date:'previewDate',time:'previewTime',address:'previewAddress'};
+    const placeholders = {name:'Name',service:'Service',date:'Date',time:'Time',address:'Location'};
     fields.forEach(function(id){
       const el = document.getElementById(id);
       if(el){ el.addEventListener('input', updatePreview); el.addEventListener('change', updatePreview); }
