@@ -1,0 +1,18 @@
+name: Daily AI Website Update
+on:
+  schedule:
+    - cron: '30 6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Daily update placeholder
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          echo "Daily AI update workflow is ready. Configure OPENAI_API_KEY in repository Actions secrets before enabling the AI generation step."
+          test -n "$OPENAI_API_KEY" || echo "OPENAI_API_KEY is not configured yet."
