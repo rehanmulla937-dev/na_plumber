@@ -17,19 +17,22 @@ alter table public.bookings add column if not exists map_location text;
 alter table public.bookings enable row level security;
 
 grant usage on schema public to anon, authenticated;
-grant insert on table public.bookings to anon;
+grant insert on table public.bookings to anon, authenticated;
 grant select, update on table public.bookings to authenticated;
 
 drop policy if exists "Allow public booking insert" on public.bookings;
 drop policy if exists "Owner can read bookings" on public.bookings;
 drop policy if exists "Owner can update bookings" on public.bookings;
 
+-- Public customers can create bookings. This also covers a browser that still has
+-- the owner's Supabase login session active, which otherwise uses the authenticated role.
 create policy "Allow public booking insert"
 on public.bookings
 for insert
-to anon
+to anon, authenticated
 with check (true);
 
+-- Only the owner account can read the bookings dashboard.
 create policy "Owner can read bookings"
 on public.bookings
 for select
@@ -38,6 +41,7 @@ using (
   auth.jwt() ->> 'email' = 'naplumberservicehyderabad@gmail.com'
 );
 
+-- Only the owner account can change booking status.
 create policy "Owner can update bookings"
 on public.bookings
 for update
