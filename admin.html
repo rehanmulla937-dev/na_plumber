@@ -176,8 +176,22 @@ async function updateStatus(id, value){
     $('dashboardMessage').textContent = `Could not update status: ${error.message || 'RLS permission denied'}`;
     return;
   }
+
+  const booking = window.__bookings?.find(item => String(item.id) === String(id));
   $('dashboardMessage').textContent = '✓ Booking status updated.';
   await render();
+
+  if(value === 'Completed' && booking && booking.phone){
+    const phone = String(booking.phone).replace(/\\D/g, '');
+    const message = `Hello ${booking.customer_name || 'Customer'}, your booking has been confirmed! ✅
+
+Your NA Plumber Service request for ${booking.service || 'plumbing service'} on ${booking.booking_date || 'the requested date'} at ${booking.booking_time || 'the requested time'} has been confirmed.
+
+📍 Location: ${booking.address || 'your service location'}
+
+Thank you for choosing NA Plumber Service.`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
+  }
 }
 
 function formatDate(v){ try{return new Date(v).toLocaleDateString('en-IN')}catch{return ''} }
