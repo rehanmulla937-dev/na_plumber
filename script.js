@@ -7,6 +7,13 @@
     if(nav) nav.style.display = nav.style.display === 'flex' ? 'none' : 'flex';
   };
 
+  document.querySelectorAll('#navLinks a').forEach(function(link){
+    link.addEventListener('click',function(){
+      const nav=document.getElementById('navLinks');
+      if(window.innerWidth<=520 && nav) nav.style.display='none';
+    });
+  });
+
   let currentMapLink = '';
   const locationBtn = document.getElementById('locationBtn');
   if(locationBtn){
