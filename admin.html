@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="style.css">
 <style>
 .admin-page{min-height:100vh;background:#07111f;color:#eef6ff;padding:30px 16px}.admin-wrap{max-width:1200px;margin:auto}.admin-login,.admin-panel{background:#0d1b2d;border:1px solid #1d3854;border-radius:20px;padding:28px;box-shadow:0 20px 50px #0006}.admin-login{max-width:430px;margin:7vh auto}.admin-login input{width:100%;box-sizing:border-box;padding:13px;margin:7px 0 15px;border-radius:10px;border:1px solid #2b4965;background:#081321;color:#fff}.admin-login label{display:block}.admin-btn{padding:13px 18px;border:0;border-radius:10px;background:#1683ff;color:#fff;font-weight:700;cursor:pointer}.admin-btn:disabled{opacity:.6;cursor:not-allowed}.error{color:#ff8b8b;min-height:22px}.success{color:#7dffb2;min-height:22px}.admin-top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.top-actions{display:flex;gap:10px}.logout{background:#20344a}.refresh{background:#1683ff}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}.stat{background:#10243a;border:1px solid #1e3d59;border-radius:15px;padding:20px}.stat b{font-size:30px;display:block}.stat small{color:#9db0c5}.table-wrap{overflow:auto}.admin-table{width:100%;border-collapse:collapse;min-width:1120px}.admin-table th,.admin-table td{text-align:left;padding:12px;border-bottom:1px solid #20384e;vertical-align:top}.admin-table th{color:#8fc6ff}.admin-table select{padding:7px;border-radius:8px}.action-cell{min-width:110px!important;white-space:nowrap!important}.remove-btn{display:inline-block!important;visibility:visible!important;opacity:1!important;padding:9px 12px!important;border:1px solid #ff7777!important;border-radius:8px!important;background:#d33!important;color:#fff!important;font-weight:700!important;cursor:pointer!important}.map-link{color:#7dc3ff;font-weight:700}.booking-count{color:#9db0c5;margin:0 0 15px}.time-cell{white-space:nowrap;font-weight:700;color:#cfe7ff}@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.admin-top{align-items:flex-start;flex-direction:column}.top-actions{width:100%}.top-actions .admin-btn{flex:1}}
-</style>
+.details-btn{padding:7px 10px;border:1px solid #4b7194;border-radius:8px;background:#18344e;color:#fff;font-weight:700;cursor:pointer;margin-right:6px}.details-btn:hover{filter:brightness(1.15)}.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:18px;z-index:999}.modal[hidden]{display:none}.modal-card{width:min(620px,100%);max-height:90vh;overflow:auto;background:#0d1b2d;border:1px solid #2b4965;border-radius:18px;padding:24px;box-shadow:0 20px 60px #000b}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.modal-close{background:#20344a;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer}.detail-grid{display:grid;grid-template-columns:140px 1fr;gap:10px 14px;margin-top:18px}.detail-label{color:#9db0c5;font-weight:700}.detail-value{word-break:break-word}@media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail-label{margin-top:6px}}\n</style>
 </head>
 <body class="admin-page">
 <div class="admin-wrap">
@@ -102,6 +102,9 @@ $('loginForm').addEventListener('submit', async e => {
 function resetLogin(){ $('loginBtn').disabled = false; $('loginBtn').textContent = 'Login'; }
 $('logout').onclick = async () => { await supabaseClient.auth.signOut(); location.reload(); };
 $('refresh').onclick = () => render();
+$('closeDetails').onclick = () => { $('detailsModal').hidden = true; };
+$('detailsModal').addEventListener('click', e => { if(e.target === $('detailsModal')) $('detailsModal').hidden = true; });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') $('detailsModal').hidden = true; });
 
 async function render(){
   $('dashboardMessage').textContent = 'Loading bookings...';
@@ -162,7 +165,7 @@ async function render(){
       <td>${safe(x.address)}${map}</td>
       <td>${safe(x.problem)}</td>
       <td><select class="status-select" data-id="${safeAttr(x.id)}"><option value="Pending" ${current==='Pending'?'selected':''}>Pending</option><option value="Completed" ${current==='Completed'?'selected':''}>Completed</option></select></td>
-      <td class="action-cell"><button class="remove-btn" type="button" data-remove-id="${safeAttr(x.id)}">🗑️ Remove</button></td>
+      <td class="action-cell"><button class="details-btn" type="button" data-details-id="${safeAttr(x.id)}">View</button><button class="remove-btn" type="button" data-remove-id="${safeAttr(x.id)}">🗑️ Remove</button></td>
     </tr>`;
   }).join('') : '<tr><td colspan="9">No bookings yet.</td></tr>';
 
@@ -191,9 +194,24 @@ async function render(){
     }).join('') : '<tr><td colspan="9">No matching bookings.</td></tr>';
     bindBookingActions();
   }
-  function bindBookingActions(){
+  function showBookingDetails(id){
+  const b=(window.__bookings||[]).find(x=>String(x.id)===String(id));
+  if(!b) return;
+  $('detailsTitle').textContent=b.customer_name || 'Customer';
+  const rows=[
+    ['Customer',b.customer_name],['Mobile',b.phone],['Service',b.service],
+    ['Date',b.booking_date || formatDate(b.created_at)],['Time',b.booking_time || '—'],
+    ['Address',b.address],['Problem',b.problem],['Status',b.status || 'Pending']
+  ];
+  $('detailsContent').innerHTML=rows.map(([label,value])=>`<div class="detail-label">${safe(label)}</div><div class="detail-value">${safe(value || '—')}</div>`).join('');
+  $('detailsModal').hidden=false;
+}
+function bindBookingActions(){
     document.querySelectorAll('.status-select').forEach(select => {
       select.onchange = () => updateStatus(select.dataset.id, select.value);
+    });
+    document.querySelectorAll('.details-btn').forEach(button => {
+      button.onclick = () => showBookingDetails(button.dataset.detailsId);
     });
     document.querySelectorAll('.remove-btn').forEach(button => {
       button.onclick = () => removeBooking(button.dataset.removeId);
