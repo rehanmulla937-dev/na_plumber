@@ -48,12 +48,16 @@
       const time=document.getElementById('time').value||null;
       const address=document.getElementById('address').value.trim();
       const problem=document.getElementById('problem').value.trim()||'Not specified';
+      const photoInput=document.getElementById('problemPhoto');
+      const photo=photoInput&&photoInput.files&&photoInput.files[0] ? photoInput.files[0] : null;
+      if(photo && photo.size>5*1024*1024){ if(status){status.textContent='Please choose a photo smaller than 5 MB.';status.className='booking-status error-booking';} return; }
+      const photoNote=photo ? `Problem Photo: ${photo.name} (attach it in WhatsApp after opening)` : 'Problem Photo: Not attached';
       const mapEl=document.getElementById('mapLocation');
       const mapLocation=(mapEl&&mapEl.value)||currentMapLink||null;
       const status=document.getElementById('bookingStatus');
       if(!name||!mobile||!service||!address){ if(status){status.textContent='Please fill all required details.';status.className='booking-status error-booking';} return; }
 
-      const message=['Hello NA Plumber Service, I want to book a plumbing service.','',`Name: ${name}`,`Mobile: ${mobile}`,`Service: ${service}`,`Preferred Date: ${date||'Not specified'}`,`Preferred Time: ${time||'Not specified'}`,`Location/Address: ${address}`,mapLocation?`Google Maps Location: ${mapLocation}`:'Google Maps Location: Not shared',`Problem: ${problem}`].join('\n');
+      const message=['Hello NA Plumber Service, I want to book a plumbing service.','',`Name: ${name}`,`Mobile: ${mobile}`,`Service: ${service}`,`Preferred Date: ${date||'Not specified'}`,`Preferred Time: ${time||'Not specified'}`,`Location/Address: ${address}`,mapLocation?`Google Maps Location: ${mapLocation}`:'Google Maps Location: Not shared',`Problem: ${problem}`,photoNote].join('\n');
       const whatsappUrl=`https://wa.me/919059991545?text=${encodeURIComponent(message)}`;
       if(button) button.disabled=true;
       if(status){status.textContent='Saving your booking...';status.className='booking-status';}
