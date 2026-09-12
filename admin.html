@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="admin-version" content="admin-enhanced-2026-09-12"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="admin-version" content="admin-status-3stage-2026-09-12"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>NA Plumber • Owner Admin</title>
 <link rel="stylesheet" href="style.css">
 <style>
@@ -30,7 +30,7 @@
   <div class="admin-filters" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px">
     <input id="bookingSearch" type="search" placeholder="🔎 Search customer, mobile, service..." style="flex:1;min-width:240px;padding:12px;border-radius:10px;border:1px solid #2b4965;background:#081321;color:#fff">
     <select id="statusFilter" style="padding:12px;border-radius:10px;border:1px solid #2b4965;background:#081321;color:#fff">
-      <option value="all">All status</option><option value="pending">Pending</option><option value="completed">Completed</option>
+      <option value="all">All status</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="completed">Completed</option>
     </select>
   </div>
   <div class="today-box" style="background:#10243a;border:1px solid #1e3d59;border-radius:15px;padding:18px;margin-bottom:18px">
@@ -39,7 +39,7 @@
       <button class="admin-btn" id="todayOnly" type="button">Show Today</button>
     </div>
   </div>
-  <div class="stats">
+  <div class="stats" style="grid-template-columns:repeat(5,1fr)">
     <div class="stat"><b id="total">0</b><small>Total bookings</small></div>
     <div class="stat"><b id="customers">0</b><small>Customers</small></div>
     <div class="stat"><b id="completed">0</b><small>Completed</small></div>
@@ -150,12 +150,14 @@ async function render(){
   $('bookingCount').textContent = bookings.length === 1 ? '1 booking' : `${bookings.length} bookings`;
   $('total').textContent = bookings.length;
   $('customers').textContent = new Set(bookings.map(x => x.phone).filter(Boolean)).size;
+  $('confirmed').textContent = bookings.filter(x => String(x.status).toLowerCase() === 'confirmed').length;
   $('completed').textContent = bookings.filter(x => String(x.status).toLowerCase() === 'completed').length;
-  $('pending').textContent = bookings.filter(x => String(x.status).toLowerCase() !== 'completed').length;
+  $('pending').textContent = bookings.filter(x => !['confirmed','completed'].includes(String(x.status).toLowerCase())).length;
 
   $('rows').innerHTML = bookings.length ? bookings.map(x => {
     const map = x.map_location ? `<br><a class="map-link" target="_blank" rel="noopener" href="${safeUrl(x.map_location)}">📍 Open Map</a>` : '';
-    const current = String(x.status || 'Pending').toLowerCase() === 'completed' ? 'Completed' : 'Pending';
+    const rawStatus=String(x.status || 'Pending').toLowerCase();
+      const current = ['pending','confirmed','completed'].includes(rawStatus) ? rawStatus.charAt(0).toUpperCase()+rawStatus.slice(1) : 'Pending';
     return `<tr>
       <td>${safe(x.booking_date || formatDate(x.created_at))}</td>
       <td class="time-cell">${safe(x.booking_time || '—')}</td>
@@ -164,7 +166,7 @@ async function render(){
       <td>${safe(x.service)}</td>
       <td>${safe(x.address)}${map}</td>
       <td>${safe(x.problem)}</td>
-      <td><select class="status-select" data-id="${safeAttr(x.id)}"><option value="Pending" ${current==='Pending'?'selected':''}>Pending</option><option value="Completed" ${current==='Completed'?'selected':''}>Completed</option></select></td>
+      <td><select class="status-select" data-id="${safeAttr(x.id)}"><option value="Pending" ${current==='Pending'?'selected':''}>Pending</option><option value="Confirmed" ${current==='Confirmed'?'selected':''}>Confirmed</option><option value="Completed" ${current==='Completed'?'selected':''}>Completed</option></select></td>
       <td class="action-cell"><button class="details-btn" type="button" data-details-id="${safeAttr(x.id)}">View</button><button class="remove-btn" type="button" data-remove-id="${safeAttr(x.id)}">🗑️ Remove</button></td>
     </tr>`;
   }).join('') : '<tr><td colspan="9">No bookings yet.</td></tr>';
@@ -178,7 +180,7 @@ async function render(){
         if(String(x.booking_date || '').slice(0,10) !== today) return false;
       }
       const hay = [x.customer_name,x.phone,x.service,x.address,x.problem].map(v=>String(v||'').toLowerCase()).join(' ');
-      const st = String(x.status||'pending').toLowerCase() === 'completed' ? 'completed' : 'pending';
+      const st = ['pending','confirmed','completed'].includes(String(x.status||'pending').toLowerCase()) ? String(x.status||'pending').toLowerCase() : 'pending';
       return (!q || hay.includes(q)) && (sf === 'all' || st === sf);
     });
     $('rows').innerHTML = filtered.length ? filtered.map(x => {
@@ -260,7 +262,7 @@ async function updateStatus(id, value){
   $('dashboardMessage').textContent = '✓ Booking status updated.';
   await render();
 
-  if(value === 'Completed' && booking && booking.phone){
+  if(value === 'Confirmed' && booking && booking.phone){
     const phone = String(booking.phone).replace(/\\D/g, '');
     const message = `Hello ${booking.customer_name || 'Customer'}, your booking has been confirmed! ✅
 
