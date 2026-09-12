@@ -64,10 +64,18 @@ $('loginForm').addEventListener('submit', async e => {
     return;
   }
 
-  const {error} = await supabaseClient.auth.signInWithPassword({email, password});
+  const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
   if(error){
     console.error('Admin login error:', error);
     $('error').textContent = 'Login failed. Check your password and try again.';
+    resetLogin();
+    return;
+  }
+
+  const user = data?.user;
+  if(!user || user.email?.toLowerCase() !== OWNER_ID.toLowerCase() || !user.email_confirmed_at){
+    await supabaseClient.auth.signOut();
+    $('error').textContent = 'Owner account is not authorized or email is not verified.';
     resetLogin();
     return;
   }
@@ -154,17 +162,27 @@ function safe(v){ return String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<'
 function safeAttr(v){ return String(v ?? '').replace(/[^a-zA-Z0-9_+\-.]/g,''); }
 function safeUrl(v){
   const s = String(v || '');
-  return /^https:\/\/www\.google\.com\/maps\?q=/.test(s) ? s.replace(/"/g,'%22') : '#';
+  return /^https:\/\/www\.google\.com\/maps\?q=-?\d+(?:\.\d+)?,-?\d+(?:\.\d+)?$/.test(s) ? s : '#';
 }
 
 (async()=>{
   const {data:{session}} = await supabaseClient.auth.getSession();
-  if(session && session.user.email === OWNER_ID){
+  const user = session?.user;
+  if(user && user.email?.toLowerCase() === OWNER_ID.toLowerCase() && user.email_confirmed_at){
     $('loginBox').hidden = true;
     $('dashboard').hidden = false;
     await render();
+  } else if(user){
+    await supabaseClient.auth.signOut();
   }
 })();
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if(event === 'SIGNED_OUT'){
+    $('dashboard').hidden = true;
+    $('loginBox').hidden = false;
+  }
+});
 </script>
 </body>
 </html>
