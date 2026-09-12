@@ -90,7 +90,7 @@ function resetLogin(){ $('loginBtn').disabled = false; $('loginBtn').textContent
 $('logout').onclick = async () => { await supabaseClient.auth.signOut(); location.reload(); };
 $('refresh').onclick = () => render();
 
-async function render(){
+async async function render(){
   $('dashboardMessage').textContent = 'Loading bookings...';
   $('refresh').disabled = true;
 
