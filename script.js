@@ -48,21 +48,22 @@
       const time=document.getElementById('time').value||null;
       const address=document.getElementById('address').value.trim();
       const problem=document.getElementById('problem').value.trim()||'Not specified';
+      const status=document.getElementById('bookingStatus');
+      const bookingRef='NA-'+Date.now().toString(36).toUpperCase();
       const photoInput=document.getElementById('problemPhoto');
       const photo=photoInput&&photoInput.files&&photoInput.files[0] ? photoInput.files[0] : null;
       if(photo && photo.size>5*1024*1024){ if(status){status.textContent='Please choose a photo smaller than 5 MB.';status.className='booking-status error-booking';} return; }
       const photoNote=photo ? `Problem Photo: ${photo.name} (attach it in WhatsApp after opening)` : 'Problem Photo: Not attached';
       const mapEl=document.getElementById('mapLocation');
       const mapLocation=(mapEl&&mapEl.value)||currentMapLink||null;
-      const status=document.getElementById('bookingStatus');
       if(!name||!mobile||!service||!address){ if(status){status.textContent='Please fill all required details.';status.className='booking-status error-booking';} return; }
 
-      const message=['Hello NA Plumber Service, I want to book a plumbing service.','',`Name: ${name}`,`Mobile: ${mobile}`,`Service: ${service}`,`Preferred Date: ${date||'Not specified'}`,`Preferred Time: ${time||'Not specified'}`,`Location/Address: ${address}`,mapLocation?`Google Maps Location: ${mapLocation}`:'Google Maps Location: Not shared',`Problem: ${problem}`,photoNote].join('\n');
+      const message=['Hello NA Plumber Service, I want to book a plumbing service.','',`Booking ID: ${bookingRef}`,`Name: ${name}`,`Mobile: ${mobile}`,`Service: ${service}`,`Preferred Date: ${date||'Not specified'}`,`Preferred Time: ${time||'Not specified'}`,`Location/Address: ${address}`,mapLocation?`Google Maps Location: ${mapLocation}`:'Google Maps Location: Not shared',`Problem: ${problem}`,photoNote].join('\n');
       const whatsappUrl=`https://wa.me/919059991545?text=${encodeURIComponent(message)}`;
       if(button) button.disabled=true;
       if(status){status.textContent='Saving your booking...';status.className='booking-status';}
 
-      const bookingData={customer_name:name,phone:mobile,service:service,address:address,problem:problem,booking_date:date,booking_time:time,map_location:mapLocation,status:'Pending'};
+      const bookingData={customer_name:name,phone:mobile,service:service,address:address,problem:`[${bookingRef}] ${problem}`,booking_date:date,booking_time:time,map_location:mapLocation,status:'Pending'};
       try{
         let result=await supabaseClient.from('bookings').insert(bookingData);
         // Backward-compatible fallback: if the new booking_time column has not been added yet, save the booking without it.
@@ -73,6 +74,8 @@
         }
         if(result.error) throw result.error;
         if(status){status.innerHTML='✓ <strong>Booking saved successfully!</strong> Opening WhatsApp...';status.className='booking-status success-booking';}
+        const refBox=document.getElementById('bookingRefBox'), refEl=document.getElementById('bookingRef');
+        if(refBox&&refEl){refEl.textContent=bookingRef;refBox.style.display='block';localStorage.setItem('na_last_booking_id',bookingRef);}
         openWhatsApp(whatsappUrl,status);
         let waButton=document.getElementById('bookingWhatsappButton');
         if(!waButton){waButton=document.createElement('a');waButton.id='bookingWhatsappButton';waButton.target='_blank';waButton.rel='noopener';waButton.className='btn whatsapp full';waButton.style.marginTop='10px';bookingForm.appendChild(waButton);}
