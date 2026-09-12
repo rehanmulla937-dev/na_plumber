@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">\n  <meta name="admin-version" content="remove-fix-2026-09-12-2"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="admin-version" content="admin-enhanced-2026-09-12"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>NA Plumber • Owner Admin</title>
 <link rel="stylesheet" href="style.css">
 <style>
@@ -25,6 +26,12 @@
   <div class="admin-top">
     <div><p>NA PLUMBER SERVICE</p><h1>Owner Dashboard</h1><p id="bookingCount" class="booking-count"></p></div>
     <div class="top-actions"><button class="admin-btn refresh" id="refresh" type="button">↻ Refresh</button><button class="admin-btn logout" id="logout" type="button">Logout</button></div>
+  </div>
+  <div class="admin-filters" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px">
+    <input id="bookingSearch" type="search" placeholder="🔎 Search customer, mobile, service..." style="flex:1;min-width:240px;padding:12px;border-radius:10px;border:1px solid #2b4965;background:#081321;color:#fff">
+    <select id="statusFilter" style="padding:12px;border-radius:10px;border:1px solid #2b4965;background:#081321;color:#fff">
+      <option value="all">All status</option><option value="pending">Pending</option><option value="completed">Completed</option>
+    </select>
   </div>
   <div class="stats">
     <div class="stat"><b id="total">0</b><small>Total bookings</small></div>
@@ -120,6 +127,7 @@ async function render(){
   $('dashboardMessage').textContent = '';
   const bookings = (data || []).filter(x => String(x.status || '').toLowerCase() !== 'removed');
   window.__bookings = data || [];
+  window.__activeBookings = bookings;
   $('bookingCount').textContent = bookings.length === 1 ? '1 booking' : `${bookings.length} bookings`;
   $('total').textContent = bookings.length;
   $('customers').textContent = new Set(bookings.map(x => x.phone).filter(Boolean)).size;
@@ -141,6 +149,38 @@ async function render(){
       <td class="action-cell"><button class="remove-btn" type="button" data-remove-id="${safeAttr(x.id)}">🗑️ Remove</button></td>
     </tr>`;
   }).join('') : '<tr><td colspan="9">No bookings yet.</td></tr>';
+
+  function applyFilters(){
+    const q = String($('bookingSearch')?.value || '').toLowerCase().trim();
+    const sf = String($('statusFilter')?.value || 'all').toLowerCase();
+    const filtered = (window.__activeBookings || []).filter(x => {
+      const hay = [x.customer_name,x.phone,x.service,x.address,x.problem].map(v=>String(v||'').toLowerCase()).join(' ');
+      const st = String(x.status||'pending').toLowerCase() === 'completed' ? 'completed' : 'pending';
+      return (!q || hay.includes(q)) && (sf === 'all' || st === sf);
+    });
+    $('rows').innerHTML = filtered.length ? filtered.map(x => {
+      const map = x.map_location ? `<br><a class="map-link" target="_blank" rel="noopener" href="${safeUrl(x.map_location)}">📍 Open Map</a>` : '';
+      const current = String(x.status || 'Pending').toLowerCase() === 'completed' ? 'Completed' : 'Pending';
+      return `<tr>
+        <td>${safe(x.booking_date || formatDate(x.created_at))}</td><td class="time-cell">${safe(x.booking_time || '—')}</td>
+        <td><strong>${safe(x.customer_name)}</strong></td><td><a href="tel:${safeAttr(x.phone)}">${safe(x.phone)}</a></td>
+        <td>${safe(x.service)}</td><td>${safe(x.address)}${map}</td><td>${safe(x.problem)}</td>
+        <td><select class="status-select" data-id="${safeAttr(x.id)}"><option value="Pending" ${current==='Pending'?'selected':''}>Pending</option><option value="Completed" ${current==='Completed'?'selected':''}>Completed</option></select></td>
+        <td class="action-cell"><button class="remove-btn" type="button" data-remove-id="${safeAttr(x.id)}">🗑️ Remove</button></td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="9">No matching bookings.</td></tr>';
+    bindBookingActions();
+  }
+  function bindBookingActions(){
+    document.querySelectorAll('.status-select').forEach(select => {
+      select.onchange = () => updateStatus(select.dataset.id, select.value);
+    });
+    document.querySelectorAll('.remove-btn').forEach(button => {
+      button.onclick = () => removeBooking(button.dataset.removeId);
+    });
+  }
+  $('bookingSearch').oninput = applyFilters;
+  $('statusFilter').onchange = applyFilters;
 
   document.querySelectorAll('.status-select').forEach(select => {
     select.addEventListener('change', () => updateStatus(select.dataset.id, select.value));
