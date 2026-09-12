@@ -138,7 +138,7 @@ async function render(){
       <td>${safe(x.address)}${map}</td>
       <td>${safe(x.problem)}</td>
       <td><select class="status-select" data-id="${safeAttr(x.id)}"><option value="Pending" ${current==='Pending'?'selected':''}>Pending</option><option value="Completed" ${current==='Completed'?'selected':''}>Completed</option></select></td>
-      <td><button class="remove-btn" type="button" data-remove-id="${safeAttr(x.id)}">Remove</button></td>
+      <td><button class="remove-btn" type="button" data-remove-id="${safeAttr(x.id)}" style="display:inline-block!important;visibility:visible!important;opacity:1!important;padding:8px 12px!important;border:0!important;border-radius:8px!important;background:#d33!important;color:#fff!important;font-weight:700!important;cursor:pointer!important;">Remove</button></td>
     </tr>`;
   }).join('') : '<tr><td colspan="9">No bookings yet.</td></tr>';
 
@@ -146,7 +146,7 @@ async function render(){
     select.addEventListener('change', () => updateStatus(select.dataset.id, select.value));
   });
   document.querySelectorAll('.remove-btn').forEach(button => {
-    button.addEventListener('click', () => removeBooking(button.dataset.removeId));
+    button.onclick = () => removeBooking(button.dataset.removeId);
   });
 }
 
