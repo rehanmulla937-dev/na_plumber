@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="admin-version" content="admin-status-3stage-2026-09-12"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>NA Plumber • Owner Admin</title>
+<title>NA Plumber • Professional Admin Dashboard</title>
 <link rel="stylesheet" href="style.css">
 <style>
 .admin-page{min-height:100vh;background:#07111f;color:#eef6ff;padding:30px 16px}.admin-wrap{max-width:1200px;margin:auto}.admin-login,.admin-panel{background:#0d1b2d;border:1px solid #1d3854;border-radius:20px;padding:28px;box-shadow:0 20px 50px #0006}.admin-login{max-width:430px;margin:7vh auto}.admin-login input{width:100%;box-sizing:border-box;padding:13px;margin:7px 0 15px;border-radius:10px;border:1px solid #2b4965;background:#081321;color:#fff}.admin-login label{display:block}.admin-btn{padding:13px 18px;border:0;border-radius:10px;background:#1683ff;color:#fff;font-weight:700;cursor:pointer}.admin-btn:disabled{opacity:.6;cursor:not-allowed}.error{color:#ff8b8b;min-height:22px}.success{color:#7dffb2;min-height:22px}.admin-top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:22px}.top-actions{display:flex;gap:10px}.logout{background:#20344a}.refresh{background:#1683ff}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}.stat{background:#10243a;border:1px solid #1e3d59;border-radius:15px;padding:20px}.stat b{font-size:30px;display:block}.stat small{color:#9db0c5}.table-wrap{overflow:auto}.admin-table{width:100%;border-collapse:collapse;min-width:1120px}.admin-table th,.admin-table td{text-align:left;padding:12px;border-bottom:1px solid #20384e;vertical-align:top}.admin-table th{color:#8fc6ff}.admin-table select{padding:7px;border-radius:8px}.action-cell{min-width:110px!important;white-space:nowrap!important}.remove-btn{display:inline-block!important;visibility:visible!important;opacity:1!important;padding:9px 12px!important;border:1px solid #ff7777!important;border-radius:8px!important;background:#d33!important;color:#fff!important;font-weight:700!important;cursor:pointer!important}.map-link{color:#7dc3ff;font-weight:700}.booking-count{color:#9db0c5;margin:0 0 15px}.time-cell{white-space:nowrap;font-weight:700;color:#cfe7ff}@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.admin-top{align-items:flex-start;flex-direction:column}.top-actions{width:100%}.top-actions .admin-btn{flex:1}}
-.details-btn{padding:7px 10px;border:1px solid #4b7194;border-radius:8px;background:#18344e;color:#fff;font-weight:700;cursor:pointer;margin-right:6px}.details-btn:hover{filter:brightness(1.15)}.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:18px;z-index:999}.modal[hidden]{display:none}.modal-card{width:min(620px,100%);max-height:90vh;overflow:auto;background:#0d1b2d;border:1px solid #2b4965;border-radius:18px;padding:24px;box-shadow:0 20px 60px #000b}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.modal-close{background:#20344a;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer}.detail-grid{display:grid;grid-template-columns:140px 1fr;gap:10px 14px;margin-top:18px}.detail-label{color:#9db0c5;font-weight:700}.detail-value{word-break:break-word}@media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail-label{margin-top:6px}}\n</style>
+.details-btn{padding:7px 10px;border:1px solid #4b7194;border-radius:8px;background:#18344e;color:#fff;font-weight:700;cursor:pointer;margin-right:6px}.details-btn:hover{filter:brightness(1.15)}.modal{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;padding:18px;z-index:999}.modal[hidden]{display:none}.modal-card{width:min(620px,100%);max-height:90vh;overflow:auto;background:#0d1b2d;border:1px solid #2b4965;border-radius:18px;padding:24px;box-shadow:0 20px 60px #000b}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.modal-close{background:#20344a;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer}.detail-grid{display:grid;grid-template-columns:140px 1fr;gap:10px 14px;margin-top:18px}.detail-label{color:#9db0c5;font-weight:700}.detail-value{word-break:break-word}@media(max-width:600px){.detail-grid{grid-template-columns:1fr}.detail-label{margin-top:6px}}\n.brand-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border-radius:999px;background:#102d46;border:1px solid #275273;color:#bfe2ff;font-size:12px;font-weight:800;letter-spacing:.4px}.admin-top h1{margin:5px 0}.admin-sub{color:#9db0c5;margin:0}.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#52d273;margin-right:6px}.stat{transition:transform .15s,border-color .15s}.stat:hover{transform:translateY(-2px);border-color:#39739e}.status-select{background:#081321;color:#fff;border:1px solid #315675}.empty-state{text-align:center;padding:35px!important;color:#9db0c5}.table-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}.secure-note{font-size:12px;color:#7892a9}@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)!important}.table-head{align-items:flex-start;flex-direction:column}}\n</style>
 </head>
 <body class="admin-page">
 <div class="admin-wrap">
@@ -24,7 +24,7 @@
 
 <section id="dashboard" class="admin-panel" hidden>
   <div class="admin-top">
-    <div><p>NA PLUMBER SERVICE</p><h1>Owner Dashboard</h1><p id="bookingCount" class="booking-count"></p></div>
+    <div><span class="brand-badge">🔐 OWNER ONLY</span><p style="margin:10px 0 0;color:#8fc6ff;font-weight:800;letter-spacing:.5px">NA PLUMBER SERVICE</p><h1>Admin Dashboard</h1><p class="admin-sub"><span class="live-dot"></span>Live booking management <span id="bookingCount" class="booking-count" style="display:inline"></span></p></div>
     <div class="top-actions"><button class="admin-btn refresh" id="refresh" type="button">↻ Refresh</button><button class="admin-btn logout" id="logout" type="button">Logout</button></div>
   </div>
   <div class="admin-filters" style="display:flex;gap:10px;flex-wrap:wrap;margin:0 0 18px">
@@ -46,10 +46,10 @@
     <div class="stat"><b id="pending">0</b><small>Pending</small></div>
   </div>
   <div id="dashboardMessage" class="error"></div>
-  <div class="table-wrap">
+  <div class="table-head"><div><strong>Booking Requests</strong><div class="secure-note">Customer requests are protected by Supabase authentication & RLS.</div></div><div class="secure-note">Last refreshed: <span id="lastRefresh">—</span></div></div><div class="table-wrap">
     <table class="admin-table">
       <thead><tr><th>Date</th><th>Time</th><th>Customer</th><th>Mobile</th><th>Service</th><th>Address / Map</th><th>Problem</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="rows"><tr><td colspan="8">Loading bookings...</td></tr></tbody>
+      <tbody id="rows"><tr><td colspan="9" class="empty-state">Loading bookings...</td></tr></tbody>
     </table>
   </div>
 </section>
@@ -129,11 +129,12 @@ async function render(){
   if(error){
     console.error('Load bookings error:', error);
     $('dashboardMessage').textContent = `Could not load bookings: ${error.message || 'RLS permission denied'}`;
-    $('rows').innerHTML = '<tr><td colspan="9">Unable to load bookings. Run the Supabase RLS setup from SUPABASE_SETUP.sql, then refresh.</td></tr>';
+    $('rows').innerHTML = '<tr><td colspan="9" class="empty-state">Unable to load bookings. Check Supabase RLS setup and refresh.</td></tr>';
     return;
   }
 
   $('dashboardMessage').textContent = '';
+  $('lastRefresh').textContent = new Date().toLocaleTimeString('en-IN');
   const bookings = (data || []).filter(x => String(x.status || '').toLowerCase() !== 'removed');
   window.__bookings = data || [];
   window.__activeBookings = bookings;
@@ -169,7 +170,7 @@ async function render(){
       <td><select class="status-select" data-id="${safeAttr(x.id)}"><option value="Pending" ${current==='Pending'?'selected':''}>Pending</option><option value="Confirmed" ${current==='Confirmed'?'selected':''}>Confirmed</option><option value="Completed" ${current==='Completed'?'selected':''}>Completed</option></select></td>
       <td class="action-cell"><button class="details-btn" type="button" data-details-id="${safeAttr(x.id)}">View</button><button class="remove-btn" type="button" data-remove-id="${safeAttr(x.id)}">🗑️ Remove</button></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="9">No bookings yet.</td></tr>';
+  }).join('') : '<tr><td colspan="9" class="empty-state">🎉 No active booking requests.</td></tr>';
 
   function applyFilters(){
     const q = String($('bookingSearch')?.value || '').toLowerCase().trim();
@@ -193,7 +194,7 @@ async function render(){
         <td><select class="status-select" data-id="${safeAttr(x.id)}"><option value="Pending" ${current==='Pending'?'selected':''}>Pending</option><option value="Completed" ${current==='Completed'?'selected':''}>Completed</option></select></td>
         <td class="action-cell"><button class="remove-btn" type="button" data-remove-id="${safeAttr(x.id)}">🗑️ Remove</button></td>
       </tr>`;
-    }).join('') : '<tr><td colspan="9">No matching bookings.</td></tr>';
+    }).join('') : '<tr><td colspan="9" class="empty-state">No matching bookings found.</td></tr>';
     bindBookingActions();
   }
   function showBookingDetails(id){
