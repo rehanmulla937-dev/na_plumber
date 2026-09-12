@@ -4,3 +4,6 @@
 
 /* Interactive button animations */
 button,.btn,.nav-book,.hero-actions a,.mobile-actions a,.contact-grid a,.service-card,.quick-card{transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}button:hover,.btn:hover,.nav-book:hover,.hero-actions a:hover,.mobile-actions a:hover,.contact-grid a:hover{transform:scale(1.06) translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.16);filter:brightness(1.04)}button:active,.btn:active,.nav-book:active,.hero-actions a:active,.mobile-actions a:active,.contact-grid a:active{transform:scale(.97) translateY(1px);box-shadow:0 3px 8px rgba(0,0,0,.12)}.service-card:hover,.quick-card:hover{transform:scale(1.025) translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.12)}@media (prefers-reduced-motion:reduce){button,.btn,.nav-book,.hero-actions a,.mobile-actions a,.contact-grid a,.service-card,.quick-card{transition:none!important}.service-card:hover,.quick-card:hover,button:hover,.btn:hover,.nav-book:hover,.hero-actions a:hover,.mobile-actions a:hover,.contact-grid a:hover{transform:none}}
+
+/* Active navigation tab */
+nav a.active{transform:scale(1.08);font-weight:900;text-shadow:0 1px 8px rgba(22,136,255,.25)}nav a{transition:transform .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease}nav a:hover{transform:scale(1.05)}
