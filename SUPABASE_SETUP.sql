@@ -49,3 +49,31 @@ using (
 with check (
   auth.jwt() ->> 'email' = 'naplumberservicehyderabad@gmail.com'
 );
+
+
+-- Extra hardening: only the owner account may read or update bookings.
+-- The signed JWT email claim is checked by Supabase RLS for every request.
+drop policy if exists "Owner can read bookings" on public.bookings;
+drop policy if exists "Owner can update bookings" on public.bookings;
+
+create policy "Owner can read bookings"
+on public.bookings
+for select
+to authenticated
+using (
+  lower(coalesce(auth.jwt() ->> 'email', '')) = 'naplumberservicehyderabad@gmail.com'
+);
+
+create policy "Owner can update bookings"
+on public.bookings
+for update
+to authenticated
+using (
+  lower(coalesce(auth.jwt() ->> 'email', '')) = 'naplumberservicehyderabad@gmail.com'
+)
+with check (
+  lower(coalesce(auth.jwt() ->> 'email', '')) = 'naplumberservicehyderabad@gmail.com'
+);
+
+-- Do not grant delete access from the client.
+revoke delete on table public.bookings from anon, authenticated;
