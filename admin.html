@@ -119,6 +119,7 @@ async function render(){
 
   $('dashboardMessage').textContent = '';
   const bookings = (data || []).filter(x => String(x.status || '').toLowerCase() !== 'removed');
+  window.__bookings = data || [];
   $('bookingCount').textContent = bookings.length === 1 ? '1 booking' : `${bookings.length} bookings`;
   $('total').textContent = bookings.length;
   $('customers').textContent = new Set(bookings.map(x => x.phone).filter(Boolean)).size;
@@ -157,8 +158,14 @@ async function removeBooking(id){
     $('dashboardMessage').textContent = `Could not remove booking: ${error.message || 'RLS permission denied'}`;
     return;
   }
+  const booking = window.__bookings?.find(item => String(item.id) === String(id));
   $('dashboardMessage').textContent = '✓ Booking removed from active requests.';
   await render();
+  if(booking && booking.phone){
+    const phone = String(booking.phone).replace(/\\D/g, '');
+    const message = `Hello ${booking.customer_name || 'Customer'}, your NA Plumber Service booking request for ${booking.service || 'plumbing service'} has been cancelled/removed by the owner. If you still need service, please contact us. Thank you.`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
+  }
 }
 
 async function updateStatus(id, value){
