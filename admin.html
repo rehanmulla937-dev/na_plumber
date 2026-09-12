@@ -33,6 +33,12 @@
       <option value="all">All status</option><option value="pending">Pending</option><option value="completed">Completed</option>
     </select>
   </div>
+  <div class="today-box" style="background:#10243a;border:1px solid #1e3d59;border-radius:15px;padding:18px;margin-bottom:18px">
+    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+      <div><strong style="font-size:18px">📅 Today’s Bookings</strong><div id="todaySummary" style="color:#9db0c5;margin-top:5px">Loading today’s bookings...</div></div>
+      <button class="admin-btn" id="todayOnly" type="button">Show Today</button>
+    </div>
+  </div>
   <div class="stats">
     <div class="stat"><b id="total">0</b><small>Total bookings</small></div>
     <div class="stat"><b id="customers">0</b><small>Customers</small></div>
@@ -128,6 +134,16 @@ async function render(){
   const bookings = (data || []).filter(x => String(x.status || '').toLowerCase() !== 'removed');
   window.__bookings = data || [];
   window.__activeBookings = bookings;
+  const today = new Date().toLocaleDateString('en-CA');
+  const todayBookings = bookings.filter(x => String(x.booking_date || '').slice(0,10) === today);
+  const todayPending = todayBookings.filter(x => String(x.status||'').toLowerCase() !== 'completed').length;
+  $('todaySummary').textContent = todayBookings.length ? `${todayBookings.length} booking${todayBookings.length===1?'':'s'} today • ${todayPending} pending` : 'No bookings scheduled for today.';
+  $('todayOnly').onclick = () => {
+    $('bookingSearch').value = '';
+    $('statusFilter').value = 'all';
+    window.__todayMode = true;
+    applyFilters();
+  };
   $('bookingCount').textContent = bookings.length === 1 ? '1 booking' : `${bookings.length} bookings`;
   $('total').textContent = bookings.length;
   $('customers').textContent = new Set(bookings.map(x => x.phone).filter(Boolean)).size;
@@ -154,6 +170,10 @@ async function render(){
     const q = String($('bookingSearch')?.value || '').toLowerCase().trim();
     const sf = String($('statusFilter')?.value || 'all').toLowerCase();
     const filtered = (window.__activeBookings || []).filter(x => {
+      if(window.__todayMode){
+        const today = new Date().toLocaleDateString('en-CA');
+        if(String(x.booking_date || '').slice(0,10) !== today) return false;
+      }
       const hay = [x.customer_name,x.phone,x.service,x.address,x.problem].map(v=>String(v||'').toLowerCase()).join(' ');
       const st = String(x.status||'pending').toLowerCase() === 'completed' ? 'completed' : 'pending';
       return (!q || hay.includes(q)) && (sf === 'all' || st === sf);
@@ -179,8 +199,8 @@ async function render(){
       button.onclick = () => removeBooking(button.dataset.removeId);
     });
   }
-  $('bookingSearch').oninput = applyFilters;
-  $('statusFilter').onchange = applyFilters;
+  $('bookingSearch').oninput = () => { window.__todayMode = false; applyFilters(); };
+  $('statusFilter').onchange = () => { window.__todayMode = false; applyFilters(); };
 
   document.querySelectorAll('.status-select').forEach(select => {
     select.addEventListener('change', () => updateStatus(select.dataset.id, select.value));
