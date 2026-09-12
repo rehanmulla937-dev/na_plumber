@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+
+Sitemap: https://rehanmulla937-dev.github.io/na_plumber/sitemap.xml
