@@ -106,4 +106,28 @@
     if(dateInput){const now=new Date();const local=new Date(now.getTime()-now.getTimezoneOffset()*60000);dateInput.min=local.toISOString().slice(0,10);}
     function updatePreview(){fields.forEach(function(id){const el=document.getElementById(id),target=document.getElementById(ids[id]);if(el&&target)target.textContent=el.value.trim()||placeholders[id];});}
   })();
+  // Service price estimate (indicative; parts may be extra)
+  (function(){
+    const select=document.getElementById('service'), value=document.getElementById('estimateValue');
+    const estimates={
+      'Water Leakage Repair':'₹499–₹1,499', 'Tap & Faucet Repair':'₹299–₹999', 'Toilet Repair':'₹399–₹1,299',
+      'Bathroom Fittings':'₹499–₹1,499', 'Geyser Plumbing':'₹499–₹1,499', 'Pipe Repair & Replacement':'₹499–₹1,999',
+      'Emergency Plumbing':'₹699–₹2,499', 'Bathroom Plumbing':'₹499–₹1,499', 'Bathroom Renovation':'Get a custom quote',
+      'AC Repairing':'Get a custom quote', 'Other':'Get a custom quote'
+    };
+    function updateEstimate(){ if(value) value.textContent=estimates[select?.value]||'Select a service'; }
+    if(select){select.addEventListener('change',updateEstimate);updateEstimate();}
+  })();
+
+  // Dark / light mode with saved preference
+  (function(){
+    const btn=document.getElementById('themeToggle');
+    const key='na_plumber_theme';
+    function apply(mode){document.body.classList.toggle('dark-mode',mode==='dark');if(btn)btn.textContent=mode==='dark'?'☀️ Light':'🌙 Dark';}
+    let saved=localStorage.getItem(key);
+    if(saved!=='dark'&&saved!=='light') saved=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+    apply(saved);
+    if(btn)btn.addEventListener('click',function(){const next=document.body.classList.contains('dark-mode')?'light':'dark';localStorage.setItem(key,next);apply(next);});
+  })();
+
 })();
