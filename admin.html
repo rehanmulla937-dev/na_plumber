@@ -20,8 +20,20 @@
     <div class="login-field"><label for="ownerId">Owner Email</label><input id="ownerId" value="naplumberservicehyderabad@gmail.com" readonly></div>
     <div class="login-field"><label for="ownerPassword">Password</label><input id="ownerPassword" type="password" autocomplete="current-password" required placeholder="Enter your owner password"></div>
     <button class="admin-btn login-submit" id="loginBtn" type="submit">Sign in to Dashboard →</button>
+    <button id="forgotPassword" type="button" style="display:block;width:100%;margin:12px 0 0;background:none;border:0;color:#79c5ff;font-weight:700;cursor:pointer">Forgot password?</button>
     <div id="error" class="error"></div>
+    <div id="resetMessage" class="success"></div>
   </form>
+  <div id="passwordResetBox" hidden style="margin-top:20px;padding:18px;border:1px solid #315777;border-radius:14px;background:#081827">
+    <h3 style="margin:0 0 7px;text-align:center">Set New Password</h3>
+    <p style="margin:0 0 14px;text-align:center;color:#9db0c5;font-size:13px">Choose a new password for your owner account.</p>
+    <label for="newPassword" style="display:block;font-size:13px;font-weight:700;margin-bottom:6px">New Password</label>
+    <input id="newPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Minimum 8 characters" style="width:100%;box-sizing:border-box;padding:13px;margin:0 0 10px;border-radius:10px;border:1px solid #2b4965;background:#071321;color:#fff">
+    <label for="confirmPassword" style="display:block;font-size:13px;font-weight:700;margin-bottom:6px">Confirm Password</label>
+    <input id="confirmPassword" type="password" autocomplete="new-password" minlength="8" placeholder="Re-enter new password" style="width:100%;box-sizing:border-box;padding:13px;margin:0 0 12px;border-radius:10px;border:1px solid #2b4965;background:#071321;color:#fff">
+    <button class="admin-btn" id="saveNewPassword" type="button" style="width:100%">Update Password</button>
+    <div id="passwordResetError" class="error" style="margin-top:8px"></div>
+  </div>
   <div class="login-security"><span>●</span> Supabase secure authentication</div>
   <small>Your password is never stored in this website's code.</small>
 </section>
@@ -103,7 +115,56 @@ $('loginForm').addEventListener('submit', async e => {
   await render();
 });
 
-function resetLogin(){ $('loginBtn').disabled = false; $('loginBtn').textContent = 'Login'; }
+function resetLogin(){ $('loginBtn').disabled = false; $('loginBtn').textContent = 'Sign in to Dashboard →'; }
+
+$('forgotPassword').onclick = async () => {
+  $('error').textContent = '';
+  $('resetMessage').textContent = '';
+  const email = $('ownerId').value.trim();
+  $('forgotPassword').disabled = true;
+  $('forgotPassword').textContent = 'Sending reset link...';
+  const redirectTo = window.location.origin + window.location.pathname;
+  const {error} = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
+  $('forgotPassword').disabled = false;
+  $('forgotPassword').textContent = 'Forgot password?';
+  if(error){
+    console.error('Password reset error:', error);
+    $('error').textContent = 'Could not send reset link. Check Supabase URL settings.';
+    return;
+  }
+  $('resetMessage').textContent = '✓ Password reset link sent to the owner email.';
+};
+
+$('saveNewPassword').onclick = async () => {
+  const password = $('newPassword').value;
+  const confirmPassword = $('confirmPassword').value;
+  $('passwordResetError').textContent = '';
+  if(password.length < 8){
+    $('passwordResetError').textContent = 'Password must be at least 8 characters.';
+    return;
+  }
+  if(password !== confirmPassword){
+    $('passwordResetError').textContent = 'Passwords do not match.';
+    return;
+  }
+  $('saveNewPassword').disabled = true;
+  $('saveNewPassword').textContent = 'Updating...';
+  const {data,error} = await supabaseClient.auth.updateUser({password});
+  if(error){
+    console.error('Password update error:', error);
+    $('passwordResetError').textContent = 'Could not update password. Please use a fresh reset link.';
+    $('saveNewPassword').disabled = false;
+    $('saveNewPassword').textContent = 'Update Password';
+    return;
+  }
+  await supabaseClient.auth.signOut();
+  $('passwordResetBox').hidden = true;
+  $('resetMessage').textContent = '✓ Password changed successfully. You can now sign in with your new password.';
+  $('newPassword').value = '';
+  $('confirmPassword').value = '';
+  $('saveNewPassword').disabled = false;
+  $('saveNewPassword').textContent = 'Update Password';
+};
 $('logout').onclick = async () => { await supabaseClient.auth.signOut(); location.reload(); };
 $('refresh').onclick = () => render();
 $('closeDetails').onclick = () => { $('detailsModal').hidden = true; };
@@ -291,6 +352,15 @@ function safeUrl(v){
 (async()=>{
   const {data:{session}} = await supabaseClient.auth.getSession();
   const user = session?.user;
+
+  if(window.location.hash.includes('type=recovery') && user?.email?.toLowerCase() === OWNER_ID.toLowerCase()){
+    $('passwordResetBox').hidden = false;
+    $('loginBtn').disabled = true;
+    $('forgotPassword').hidden = true;
+    $('ownerPassword').disabled = true;
+    $('passwordResetBox').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
   if(user && user.email?.toLowerCase() === OWNER_ID.toLowerCase() && user.email_confirmed_at){
     $('loginBox').hidden = true;
     $('dashboard').hidden = false;
