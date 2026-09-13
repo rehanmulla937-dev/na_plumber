@@ -119,6 +119,44 @@
     if(select){select.addEventListener('change',updateEstimate);updateEstimate();}
   })();
 
+
+  // Website feedback
+  (function(){
+    const form=document.getElementById('feedbackForm');
+    const list=document.getElementById('feedbackList');
+    if(!form) return;
+    const status=document.getElementById('feedbackStatus');
+    const client=supabaseClient;
+    const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    async function loadFeedback(){
+      if(!list) return;
+      const {data,error}=await client.from('feedback').select('name,rating,message,created_at').eq('approved',true).order('created_at',{ascending:false}).limit(12);
+      if(error){ list.innerHTML='<p class="feedback-empty">Feedback will appear here after the first review.</p>'; return; }
+      if(!data||!data.length){ list.innerHTML='<p class="feedback-empty">Be the first customer to share feedback.</p>'; return; }
+      list.innerHTML=data.map(item=>{
+        const rating=Math.max(1,Math.min(5,Number(item.rating)||5));
+        return '<article class="feedback-card"><div class="feedback-stars">'+('★'.repeat(rating))+('☆'.repeat(5-rating))+'</div><p>“'+esc(item.message)+'”</p><strong>'+esc(item.name||'Customer')+'</strong></article>';
+      }).join('');
+    }
+    form.addEventListener('submit',async function(e){
+      e.preventDefault();
+      const name=document.getElementById('feedbackName').value.trim().slice(0,60);
+      const rating=Number(document.getElementById('feedbackRating').value);
+      const message=document.getElementById('feedbackMessage').value.trim().slice(0,500);
+      if(!rating||!message){status.textContent='Please select a rating and write your feedback.';status.className='booking-status error-booking';return;}
+      status.textContent='Submitting your feedback...';status.className='booking-status';
+      const {error}=await client.from('feedback').insert({name:name||null,rating,message,approved:true});
+      if(error){
+        console.error('Feedback error:',error);
+        status.textContent='Could not submit feedback right now. Please try again.';status.className='booking-status error-booking';return;
+      }
+      form.reset();
+      status.textContent='✓ Thank you! Your feedback is now visible on the website.';status.className='booking-status success-booking';
+      await loadFeedback();
+    });
+    loadFeedback();
+  })();
+
   // Dark / light mode with saved preference
   (function(){
     const btn=document.getElementById('themeToggle');
