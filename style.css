@@ -7,3 +7,22 @@ button,.btn,.nav-book,.hero-actions a,.mobile-actions a,.contact-grid a,.service
 
 /* Active navigation tab */
 nav a.active{transform:scale(1.08);font-weight:900;text-shadow:0 1px 8px rgba(22,136,255,.25)}nav a{transition:transform .2s ease,background .2s ease,color .2s ease,box-shadow .2s ease}nav a:hover{transform:scale(1.05)}
+
+
+/* Website feedback */
+.feedback-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px;align-items:start}
+.feedback-form{display:grid;gap:14px;margin-top:18px}
+.feedback-form label{display:grid;gap:7px;font-weight:700}
+.feedback-form input,.feedback-form select,.feedback-form textarea{width:100%;padding:13px 14px;border:1px solid #d6e1ea;border-radius:12px;font:inherit;background:#fff;color:#14283a}
+.feedback-form textarea{min-height:120px;resize:vertical}
+.feedback-list-wrap{padding:24px;border-radius:22px;background:#f7fafc;border:1px solid #e2eaf0}
+.feedback-list-wrap h3{margin:0 0 16px}
+.feedback-list{display:grid;gap:12px}
+.feedback-card{padding:16px;border-radius:16px;background:#fff;border:1px solid #e2eaf0;box-shadow:0 8px 24px #0b355012}
+.feedback-card p{margin:8px 0 10px;line-height:1.6}
+.feedback-stars,.stars{letter-spacing:2px}
+.feedback-empty{margin:0;color:#65778a}
+@media(max-width:800px){.feedback-layout{grid-template-columns:1fr}}
+body.dark-mode .feedback-list-wrap{background:#0d1c2b;border-color:#25415a}
+body.dark-mode .feedback-card{background:#10243a;border-color:#284761}
+body.dark-mode .feedback-form input,body.dark-mode .feedback-form select,body.dark-mode .feedback-form textarea{background:#0d1c2b;color:#fff;border-color:#294761}
